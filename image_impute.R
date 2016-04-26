@@ -92,6 +92,7 @@ data <- mx.symbol.Variable("data")
 # num_hidden: number of neurons in this hidden layer
 fc1 <- mx.symbol.FullyConnected(data, num_hidden=1)
 
+
 # Use linear regression for the output layer
 lro <- mx.symbol.LinearRegressionOutput(fc1)
 
@@ -100,10 +101,20 @@ model <- mx.model.FeedForward.create(lro, X=train.x, y=train.y,
                                      ctx=mx.cpu(), num.round=50, array.batch.size=20,
                                      learning.rate=2e-6, momentum=0.9, eval.metric=mx.metric.rmse)
 
+model <- mx.mlp(train.x, train.y,
+                hidden_node=10, out_node=2,
+                num.round=20, array.batch.size=15, learning.rate=0.07, momentum=0.9, 
+                out_activation = "relu", 
+                , eval.metric=mx.metric.rmse)
+
 preds = t(predict(model, test.x))
 sqrt(mean((preds-test.y)^2))
+graph.viz(model$symbol$as.json())
 
 # random forest
 model.rf <- randomForest(train$medv ~ .,data=train, mtry=3,importance=TRUE, na.action=na.omit)
 model.rf.pred=predict(model.rf,test)
 sqrt(mean((model.rf.pred-test$medv)^2))
+
+
+
