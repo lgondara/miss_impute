@@ -1,12 +1,14 @@
 
 
 mult_impute <- function(xmis, maxiter = 10, ntree = 100, variablewise = FALSE,
-                       decreasing = FALSE, verbose = FALSE,
-                       mtry = floor(sqrt(ncol(xmis))), replace = TRUE,
-                       classwt = NULL, cutoff = NULL, strata = NULL,
-                       sampsize = NULL, nodesize = NULL, maxnodes = NULL,
-                       xtrue = NA, modelUse="RF")
+                        decreasing = FALSE, verbose = FALSE,
+                        mtry = floor(sqrt(ncol(xmis))), replace = TRUE,
+                        classwt = NULL, cutoff = NULL, strata = NULL,
+                        sampsize = NULL, nodesize = NULL, maxnodes = NULL,
+                        xtrue = NA, modelUse="RF")
 { 
+  require(randomForest)
+  require(e1071)
   n <- nrow(xmis)
   p <- ncol(xmis)
   if (!is.null(classwt))
@@ -27,7 +29,7 @@ mult_impute <- function(xmis, maxiter = 10, ntree = 100, variablewise = FALSE,
         'due to the missingness of all entries\n')
   } 
   
-
+  
   ## perform initial S.W.A.G. on xmis (mean imputation)
   ximp <- xmis
   xAttrib <- lapply(xmis, attributes)
@@ -63,7 +65,7 @@ mult_impute <- function(xmis, maxiter = 10, ntree = 100, variablewise = FALSE,
     sort.j <- rev(sort.j)
   sort.noNAvar <- noNAvar[sort.j]
   
-
+  
   ## output
   Ximp <- vector('list', maxiter)
   
@@ -110,77 +112,75 @@ mult_impute <- function(xmis, maxiter = 10, ntree = 100, variablewise = FALSE,
     t.start <- proc.time()
     ximp.old <- ximp
     
-      for (s in 1:p) {
-        varInd <- sort.j[s]
-        if (noNAvar[[varInd]] != 0) {
-          obsi <- !NAloc[, varInd]
-          misi <- NAloc[, varInd]
-          obsY <- ximp[obsi, varInd]
-          obsX <- ximp[obsi, seq(1, p)[-varInd]]
-          misX <- ximp[misi, seq(1, p)[-varInd]]
-          typeY <- varType[varInd]
-          if (typeY == "numeric") {
-            if (modelUse == "RF"){
-
-              RF <- randomForest( x = obsX,
-                                  y = obsY,
-                                  ntree = ntree,
-                                  mtry = mtry,
-                                  replace = replace,
-                                  sampsize = if (!is.null(sampsize)) sampsize[[varInd]] else
-                                    if (replace) nrow(obsX) else ceiling(0.632*nrow(obsX)),
-                                  nodesize = if (!is.null(nodesize)) nodesize[1] else 1,
-                                  maxnodes = if (!is.null(maxnodes)) maxnodes else NULL)
+    for (s in 1:p) {
+      varInd <- sort.j[s]
+      if (noNAvar[[varInd]] != 0) {
+        obsi <- !NAloc[, varInd]
+        misi <- NAloc[, varInd]
+        obsY <- ximp[obsi, varInd]
+        obsX <- ximp[obsi, seq(1, p)[-varInd]]
+        misX <- ximp[misi, seq(1, p)[-varInd]]
+        typeY <- varType[varInd]
+        if (typeY == "numeric") {
+          if (modelUse == "RF"){
+            
+            RF <- randomForest( x = obsX,
+                                y = obsY,
+                                ntree = ntree,
+                                mtry = mtry,
+                                replace = replace,
+                                sampsize = if (!is.null(sampsize)) sampsize[[varInd]] else
+                                  if (replace) nrow(obsX) else ceiling(0.632*nrow(obsX)),
+                                nodesize = if (!is.null(nodesize)) nodesize[1] else 1,
+                                maxnodes = if (!is.null(maxnodes)) maxnodes else NULL)
+            ## record out-of-bag error
+            OOBerror[varInd] <- RF$mse[ntree]
+            misY <- predict(RF, misX)
+          }
+          if (modelUse == "svm"){
+            RF <- svm(obsX,as.matrix(obsY))
+            misY=predict(RF,misX)
+          }
+          
+        } else {
+          obsY <- factor(obsY)
+          summarY <- summary(obsY)
+          if (length(summarY) == 1) {
+            misY <- factor(rep(names(summarY), sum(misi)))
+          } else {
+            if (modelUse=="RF"){
+              
+              RF <- randomForest(x = obsX, 
+                                 y = obsY, 
+                                 ntree = ntree, 
+                                 mtry = mtry, 
+                                 replace = replace, 
+                                 classwt = if (!is.null(classwt)) classwt[[varInd]] else 
+                                   rep(1, nlevels(obsY)),
+                                 cutoff = if (!is.null(cutoff)) cutoff[[varInd]] else 
+                                   rep(1/nlevels(obsY), nlevels(obsY)),
+                                 strata = if (!is.null(strata)) strata[[varInd]] else obsY, 
+                                 sampsize = if (!is.null(sampsize)) sampsize[[varInd]] else 
+                                   if (replace) nrow(obsX) else ceiling(0.632 * nrow(obsX)), 
+                                 nodesize = if (!is.null(nodesize)) nodesize[2] else 5, 
+                                 maxnodes = if (!is.null(maxnodes)) maxnodes else NULL)
               ## record out-of-bag error
-              OOBerror[varInd] <- RF$mse[ntree]
+              OOBerror[varInd] <- RF$err.rate[[ntree, 1]]
               misY <- predict(RF, misX)
             }
+            
             if (modelUse == "svm"){
-              RF <- svm(obsY~as.matrix(obsX))
+              RF <- svm(obsX,as.matrix(obsY))
               misY=predict(RF,misX)
             }
-
             
-          } else {
-            obsY <- factor(obsY)
-            summarY <- summary(obsY)
-            if (length(summarY) == 1) {
-              misY <- factor(rep(names(summarY), sum(misi)))
-            } else {
-              if (modelUse=="RF"){
-  
-                RF <- randomForest(x = obsX, 
-                                   y = obsY, 
-                                   ntree = ntree, 
-                                   mtry = mtry, 
-                                   replace = replace, 
-                                   classwt = if (!is.null(classwt)) classwt[[varInd]] else 
-                                     rep(1, nlevels(obsY)),
-                                   cutoff = if (!is.null(cutoff)) cutoff[[varInd]] else 
-                                     rep(1/nlevels(obsY), nlevels(obsY)),
-                                   strata = if (!is.null(strata)) strata[[varInd]] else obsY, 
-                                   sampsize = if (!is.null(sampsize)) sampsize[[varInd]] else 
-                                     if (replace) nrow(obsX) else ceiling(0.632 * nrow(obsX)), 
-                                   nodesize = if (!is.null(nodesize)) nodesize[2] else 5, 
-                                   maxnodes = if (!is.null(maxnodes)) maxnodes else NULL)
-                ## record out-of-bag error
-                OOBerror[varInd] <- RF$err.rate[[ntree, 1]]
-                misY <- predict(RF, misX)
-                }
-              
-              if (modelUse == "svm"){
-                RF <- svm(obsY~as.matrix(obsX))
-                misY=predict(RF,misX)
-              }
-              
-              
-              ## predict missing parts of Y
-              
-            }
+            ## predict missing parts of Y
+            
           }
-          ximp[misi, varInd] <- misY
         }
+        ximp[misi, varInd] <- misY
       }
+    }
     cat('done!\n')
     
     iter <- iter+1
@@ -257,9 +257,3 @@ mult_impute <- function(xmis, maxiter = 10, ntree = 100, variablewise = FALSE,
   class(out) <- 'mult_impute'
   return(out)
 }
-
-require(mice)
-data(nhanes)
-
-imp.nhanes=mult_impute(nhanes,verbose=TRUE, modelUse = "svm")
-nhnaes.comp=imp.nhanes$ximp
