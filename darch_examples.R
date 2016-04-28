@@ -73,12 +73,16 @@ darch <- darch(glassX,glassY,
                preProc.params = list(method = c("center", "scale")),
                layers = c(9,200,300,100,6),
                darch.batchSize =  6,
-               darch.dropout = .1,
+               darch.dropout = .05,
                darch.dropout.oneMaskPerEpoch = T,
-               bp.learnRate = .007,
+               bp.learnRate = .01,
                darch.isClass = T,
                darch.fineTuneFunction = "backpropagation",
                darch.unitFunction = c(maxoutUnit,maxoutUnit,maxoutUnit,softmaxUnit),
+               darch.maxout.poolSize = 5,
+               darch.maxout.unitFunction = exponentialLinearUnit,
+               darch.elu.alpha = 2,
+               darch.weightUpdateFunction = c(maxoutWeightUpdate,maxoutWeightUpdate,maxoutWeightUpdate, weightDecayWeightUpdate),
                darch.numEpochs = 500)
 
 
