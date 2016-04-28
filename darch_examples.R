@@ -34,18 +34,17 @@ example.regression()
 
 ##cat dataset
 
-darch <- darch(Hwt ~ Bwt,
-               cats[1:100,],
+darch <- darch(obsX,obsY,
                preProc.params = list(method = c("center", "scale")),
                preProc.targets = T,
-               layers = c(1,20,50,20,1),
+               layers = c(ncol(obsX),20,50,20,1),
                darch.batchSize =  10,
                bp.learnRate = .01,
                darch.isClass = F,
                darch.numEpochs = 100,
                darch.unitFunction = linearUnit)
 
-pred=predict(darch,newdata=cats[101:144,], type="raw")
+pred=predict(darch,misX, type="raw")
 sqrt(mean(cats[101:144,3]-pred)^2)
 
 lmodel=lm(Hwt~Bwt,data=cats[1:100,])
@@ -68,22 +67,26 @@ sqrt(mean((predict.bm-cats[101:144,3])^2))
 ##glass dataset
 data("Glass")
 glass_shuffle=Glass[sample(nrow(Glass)),]
-darch <- darch(Type ~ .,
-               glass_shuffle[1:150,],
-               layers = c(0,100,50,30,20,10,7),
-               darch.batchSize =  10,
-               bp.learnRate = .01,
+glassX=as.matrix(glass_shuffle[1:150,1:9])
+glassY=glass_shuffle[1:150,10]
+darch <- darch(glassX,glassY,
+               preProc.params = list(method = c("center", "scale")),
+               layers = c(9,200,300,100,6),
+               darch.batchSize =  6,
+               darch.dropout = .1,
+               darch.dropout.oneMaskPerEpoch = T,
+               bp.learnRate = .007,
                darch.isClass = T,
-               darch.numEpochs = 100,
                darch.fineTuneFunction = "backpropagation",
-               darch.unitFunction = softmaxUnit)
+               darch.unitFunction = c(maxoutUnit,maxoutUnit,maxoutUnit,softmaxUnit),
+               darch.numEpochs = 500)
 
 
-pred=predict(darch,newdata=glass_shuffle[151:214,], type="class")
+pred=predict(darch,newdata=glass_shuffle[151:214,1:9], type="class")
 postResample(pred,glass_shuffle[151:214,10])
 
-model.rf <- randomForest(Type ~ .,data=glass_shuffle[1:150,])
-model.rf.pred=predict(model.rf,glass_shuffle[151:214,])
+model.rf <- randomForest(glassX,glassY)
+model.rf.pred=predict(model.rf,glass_shuffle[151:214,1:9])
 postResample(model.rf.pred,glass_shuffle[151:214,10])
 
 

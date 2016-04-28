@@ -141,6 +141,18 @@ mult_impute <- function(xmis, maxiter = 10, ntree = 100, variablewise = FALSE,
             RF <- svm(obsX,as.matrix(obsY))
             misY=predict(RF,misX)
           }
+          if (modelUse=="dn"){
+            darch <- darch(obsX,obsY,
+                           preProc.params = list(method = c("center", "scale")),
+                           preProc.targets = T,
+                           layers = c(ncol(obsX),20,50,20,1),
+                           darch.batchSize =  10,
+                           bp.learnRate = .01,
+                           darch.isClass = F,
+                           darch.numEpochs = 100,
+                           darch.unitFunction = linearUnit)
+            misY=predict(darch,misX,type="raw")
+          }
           
         } else {
           obsY <- factor(obsY)
@@ -257,3 +269,7 @@ mult_impute <- function(xmis, maxiter = 10, ntree = 100, variablewise = FALSE,
   class(out) <- 'mult_impute'
   return(out)
 }
+
+data(nhanes)
+imp.rf=mult_impute(nhanes,modelUse="RF", verbose = TRUE)
+imp.svm=mult_impute(nhanes,modelUse = "svm", verbose = TRUE)
