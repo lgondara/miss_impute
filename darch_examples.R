@@ -45,7 +45,7 @@ darch <- darch(obsX,obsY,
                darch.unitFunction = linearUnit)
 
 pred=predict(darch,misX, type="raw")
-sqrt(mean(cats[101:144,3]-pred)^2)
+sqrt(mean(cats[101:144,3]- pred)^2)
 
 lmodel=lm(Hwt~Bwt,data=cats[1:100,])
 pred.lm=predict.lm(lmodel,cats[101:144,])
@@ -71,7 +71,7 @@ glassX=as.matrix(glass_shuffle[1:150,1:9])
 glassY=glass_shuffle[1:150,10]
 darch <- darch(glassX,glassY,
                preProc.params = list(method = c("center", "scale")),
-               layers = c(9,200,300,100,6),
+               layers = c(ncol(obsX),200,300,200,nlevels(obsY)),
                darch.batchSize =  6,
                darch.dropout = .05,
                darch.dropout.oneMaskPerEpoch = T,
@@ -79,11 +79,7 @@ darch <- darch(glassX,glassY,
                darch.isClass = T,
                darch.fineTuneFunction = "backpropagation",
                darch.unitFunction = c(maxoutUnit,maxoutUnit,maxoutUnit,softmaxUnit),
-               darch.maxout.poolSize = 5,
-               darch.maxout.unitFunction = exponentialLinearUnit,
-               darch.elu.alpha = 2,
-               darch.weightUpdateFunction = c(maxoutWeightUpdate,maxoutWeightUpdate,maxoutWeightUpdate, weightDecayWeightUpdate),
-               darch.numEpochs = 500)
+               darch.numEpochs = 200)
 
 
 pred=predict(darch,newdata=glass_shuffle[151:214,1:9], type="class")
@@ -152,3 +148,12 @@ example.mnist <- function(dataFolder = "data/", downloadMNIST = T, ...)
   darch
 }
 example.mnist()
+
+
+
+###bartmachine example
+data("Glass")
+glass_shuffle=Glass[sample(nrow(Glass)),]
+glassX=glass_shuffle[1:150,1:9]
+glassY=glass_shuffle[1:150,10]
+bart=bartMachine(glassX,glassY)

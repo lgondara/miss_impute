@@ -1,6 +1,6 @@
 
 
-mult_impute <- function(xmis, maxiter = 10, ntree = 100, variablewise = FALSE,
+mult_impute <- function(xmis, maxiter = 2, ntree = 100, variablewise = FALSE,
                         decreasing = FALSE, verbose = FALSE,
                         mtry = floor(sqrt(ncol(xmis))), replace = TRUE,
                         classwt = NULL, cutoff = NULL, strata = NULL,
@@ -9,6 +9,7 @@ mult_impute <- function(xmis, maxiter = 10, ntree = 100, variablewise = FALSE,
 { 
   require(randomForest)
   require(e1071)
+  require(caret)
   n <- nrow(xmis)
   p <- ncol(xmis)
   if (!is.null(classwt))
@@ -138,20 +139,20 @@ mult_impute <- function(xmis, maxiter = 10, ntree = 100, variablewise = FALSE,
             misY <- predict(RF, misX)
           }
           if (modelUse == "svm"){
-            RF <- svm(obsX,as.matrix(obsY))
+            RF <- svm(obsX,as.matrix(obsY),scale = F)
             misY=predict(RF,misX)
           }
           if (modelUse=="dn"){
-            darch <- darch(obsX,obsY,
+            darch <- darch(data.matrix(obsX),obsY,
                            preProc.params = list(method = c("center", "scale")),
                            preProc.targets = T,
                            layers = c(ncol(obsX),20,50,20,1),
-                           darch.batchSize =  10,
+                           darch.batchSize =  round(nrow(obsX)/10),
                            bp.learnRate = .01,
                            darch.isClass = F,
                            darch.numEpochs = 100,
                            darch.unitFunction = linearUnit)
-            misY=predict(darch,misX,type="raw")
+            misY=predict(darch,newdata=misX,type="raw")
           }
           
         } else {
@@ -182,8 +183,24 @@ mult_impute <- function(xmis, maxiter = 10, ntree = 100, variablewise = FALSE,
             }
             
             if (modelUse == "svm"){
-              RF <- svm(obsX,as.matrix(obsY))
+              RF <- svm(obsX,obsY, type="C", scale = F)
               misY=predict(RF,misX)
+            }
+            
+            if(modelUse=="dn"){
+              darch <- darch(obsX,obsY,
+                             preProc.params = list(method = c("center", "scale")),
+                             layers = c(ncol(obsX),200,300,200,nlevels(obsY)),
+                             darch.batchSize =  nlevels(obsY),
+                             darch.dropout = .05,
+                             darch.dropout.oneMaskPerEpoch = T,
+                             bp.learnRate = .01,
+                             darch.isClass = T,
+                             darch.fineTuneFunction = "backpropagation",
+                             darch.unitFunction = c(maxoutUnit,maxoutUnit,maxoutUnit,softmaxUnit),
+                             darch.numEpochs = 200)
+              misY=predict(darch,newdata=misX, type="class")
+              
             }
             
             ## predict missing parts of Y
@@ -271,5 +288,8 @@ mult_impute <- function(xmis, maxiter = 10, ntree = 100, variablewise = FALSE,
 }
 
 data(nhanes)
-imp.rf=mult_impute(nhanes,modelUse="RF", verbose = TRUE)
-imp.svm=mult_impute(nhanes,modelUse = "svm", verbose = TRUE)
+data("nhanes2")
+imp.rf=mult_impute(nhanesnew,modelUse="RF", verbose = TRUE)
+imp.svm=mult_impute(nhanesnew,modelUse = "svm", verbose = TRUE)
+imp.dl=mult_impute(nhanesnew,modelUse = "dn", verbose = TRUE)
+imp.data=imp.svm$ximp
