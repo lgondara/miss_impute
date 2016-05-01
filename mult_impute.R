@@ -139,7 +139,7 @@ mult_impute <- function(xmis, maxiter = 2, ntree = 100, variablewise = FALSE,
             misY <- predict(RF, misX)
           }
           if (modelUse == "svm"){
-            RF <- svm(obsX,as.matrix(obsY),scale = F)
+            RF <- svm(obsX,as.matrix(obsY), scale = F)
             misY=predict(RF,misX)
           }
           if (modelUse=="dn"){
@@ -183,7 +183,7 @@ mult_impute <- function(xmis, maxiter = 2, ntree = 100, variablewise = FALSE,
             }
             
             if (modelUse == "svm"){
-              RF <- svm(obsX,obsY, type="C", scale = F)
+              RF <- svm(obsX,as.matrix(obsY), type="C", scale = F)
               misY=predict(RF,misX)
             }
             
@@ -293,3 +293,10 @@ imp.rf=mult_impute(nhanesnew,modelUse="RF", verbose = TRUE)
 imp.svm=mult_impute(nhanesnew,modelUse = "svm", verbose = TRUE)
 imp.dl=mult_impute(nhanesnew,modelUse = "dn", verbose = TRUE)
 imp.data=imp.svm$ximp
+
+require(missForest)
+b=data(BreastCancer)
+newb=prodNA(Glass,0.05)
+buse=newb[,-1]
+imp.rf=mult_impute(newb,modelUse="svm", verbose = TRUE)
+missForest(newb)
