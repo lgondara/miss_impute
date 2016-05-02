@@ -55,7 +55,7 @@ dl_impute <- function(xmis, maxiter = 5, ntree = 100, variablewise = FALSE,
   
     
     for (s in 1:p) {
-      varInd <- sort.j[2]
+      varInd <- sort.j[s]
       if (noNAvar[[varInd]] != 0) {
         obsi <- !NAloc[, varInd]
         misi <- NAloc[, varInd]
@@ -69,7 +69,7 @@ dl_impute <- function(xmis, maxiter = 5, ntree = 100, variablewise = FALSE,
                            preProc.params = list(method = c("center", "scale")),
                            preProc.targets = T,
                            layers = c(ncol(obsX),20,50,20,1),
-                           darch.batchSize =10,
+                           darch.batchSize =5,
                            bp.learnRate = .001,
                            darch.isClass = F,
                            darch.numEpochs = 100,
@@ -117,3 +117,20 @@ dldata=ximp
 
 f=missForest(missbc)
 rfdata=f$ximp
+
+p <- ncol(rfdata)
+errors=NULL
+for (i in 1:p) {
+  errors[i]=postResample(rfdata[,i],BreastCancer[,1+i])[1]
+}
+
+data(DNA)
+missdna=prodNA(DNA,0.02)
+d=dl_impute(missdna)
+dldata=ximp
+
+
+data("BostonHousing")
+misshouse=prodNA(BostonHousing,0.02)
+dl_impute(misshouse)
+dldata=
