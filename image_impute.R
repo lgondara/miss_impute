@@ -5,6 +5,7 @@ require(EBImage)
 require(randomForest)
 require(bartMachine)
 require(mxnet)
+require(ripa)
 Image <- readImage('~/sop.JPG')
 display(Image)
 dim(Image)
@@ -12,12 +13,14 @@ g.Image=Image(Image, c(506,316), "Grayscale")
 display(g.Image)
 g.Image.d=as.data.frame(g.Image)
 I=as.Image(g.Image.d)
-plot(I)
+display(g.Image.d)
 # MCAR
 prop.m = .07  
 mcar   = runif(nrow(g.Image.d), min=0, max=1)
 g.Image.d[,3]= ifelse(mcar<prop.m, 0, g.Image.d[,3]) 
 display(as.Image(g.Image.d))
+data(logo)
+logo2=logo
 logo2[,33]= ifelse(mcar<prop.m, 0, logo2[,33]) # unrelated to anything
 plot(logo2)
 logo2.matrix=matrix(logo2,nrow=nrow(logo2),ncol=ncol(logo2))
@@ -118,3 +121,30 @@ sqrt(mean((model.rf.pred-test$medv)^2))
 
 
 
+####
+logo.matrix=as.matrix(logo)
+plot(logo.matrix)
+misslogo=prodNA(logo.matrix,0.05)
+plot(misslogo)
+
+display(logo)
+
+
+###try ebimage
+require(EBImage)
+f = system.file("images", "sample.png", package="EBImage")
+img = readImage(f)
+display(img)
+dim(img)
+img.data=imageData(img)
+display(img.data)
+
+img.data.miss=prodNA(img.data,0.05)
+display(img.data.miss)
+
+img.dat=as.data.frame(img.data.miss)
+
+missf.img1=missForest(img.dat,maxiter=1)
+
+comp.data=missf.img1$ximp
+display(as.matrix(comp.data))

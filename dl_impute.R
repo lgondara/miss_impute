@@ -55,7 +55,7 @@ dl_impute <- function(xmis, maxiter = 5, ntree = 100, variablewise = FALSE,
   
     
     for (s in 1:p) {
-      varInd <- sort.j[s]
+      varInd <- sort.j[3]
       if (noNAvar[[varInd]] != 0) {
         obsi <- !NAloc[, varInd]
         misi <- NAloc[, varInd]
@@ -70,7 +70,7 @@ dl_impute <- function(xmis, maxiter = 5, ntree = 100, variablewise = FALSE,
                            preProc.targets = T,
                            layers = c(ncol(obsX),20,50,20,1),
                            darch.batchSize =5,
-                           bp.learnRate = .001,
+                           bp.learnRate = .01,
                            darch.isClass = F,
                            darch.numEpochs = 100,
                            darch.unitFunction = linearUnit)
