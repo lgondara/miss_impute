@@ -108,8 +108,9 @@ svm_impute <- function(xmis, maxiter = 2, ntree = 100, verbose = FALSE,xtrue=NA)
         misX <- ximp[misi, seq(1, p)[-varInd]]
         typeY <- varType[varInd]
         if (typeY == "numeric") {
+          print(s)
           
-          RF <- svm(data.matrix(obsX),obsY, scale=F)
+          RF <- svm(data.matrix(obsX),obsY)
           misY <- predict(RF, data.matrix(misX))
           
           

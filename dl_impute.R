@@ -64,13 +64,14 @@ dl_impute <- function(xmis, maxiter = 5, ntree = 100, variablewise = FALSE,
         misX <- ximp[misi, seq(1, p)[-varInd]]
         typeY <- varType[varInd]
         if (typeY == "numeric") {
+            print(s)
         
             darch <- darch(data.matrix(obsX),obsY,
                            preProc.params = list(method = c("center", "scale")),
                            preProc.targets = T,
                            layers = c(ncol(obsX),20,50,20,1),
                            darch.batchSize =5,
-                           bp.learnRate = .01,
+                           bp.learnRate = .001,
                            darch.isClass = F,
                            darch.numEpochs = 100,
                            darch.unitFunction = linearUnit)

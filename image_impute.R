@@ -133,18 +133,41 @@ display(logo)
 ###try ebimage
 require(EBImage)
 f = system.file("images", "sample.png", package="EBImage")
-img = readImage(f)
-display(img)
+Image <- readImage('C:/Users/ldpc/Downloads/panda.jpg')
+display(Image)
 dim(img)
-img.data=imageData(img)
+img.data=imageData(Image)
 display(img.data)
 
-img.data.miss=prodNA(img.data,0.05)
+img.data.miss=prodNA(img.data,0.5)
 display(img.data.miss)
 
 img.dat=as.data.frame(img.data.miss)
 
 missf.img1=missForest(img.dat,maxiter=1)
 
+misssvm.img1=svm_impute(img.dat)
+comp.data=misssvm.img1$ximp
+display(as.matrix(comp.data))
+
+
 comp.data=missf.img1$ximp
 display(as.matrix(comp.data))
+
+missf.img2=dl_impute(img.dat)
+comp.data.2=missf.img2
+display(as.matrix(comp.data.2))
+
+img.data.miss=prodNA(img.data,0.2)
+display(img.data.miss)
+
+img.dat=as.data.frame(img.data.miss)
+
+missf.img1=missForest(img.dat,maxiter=1)
+comp.data.3=missf.img1$ximp
+display(as.matrix(img.data.miss))
+
+
+lasso.imp=reg_impute(img.dat)
+comp.data.4=lasso.imp$ximp
+display(as.matrix(comp.data.4))
