@@ -6,7 +6,7 @@ reg_impute <- function(xmis, maxiter = 1, ntree = 100, verbose = FALSE,xtrue=NA)
   require(caret)
   n <- nrow(xmis)
   p <- ncol(xmis)
-  
+  ##regression
   
   ## remove completely missing variables
   if (any(apply(is.na(xmis), 2, sum) == n)){
