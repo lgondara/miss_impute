@@ -9,27 +9,64 @@ output: ioslides_presentation
 knitr::opts_chunk$set(echo = FALSE)
 ```
 
-## R Markdown
+## Contents
 
-This is an R Markdown presentation. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+- Overview 
+- Conventional imputation
+- Modern imputation
+- Loss to follow-up as a missing data problem
+- Examples
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document.
+## Overview
 
-## Slide with Bullets
+"A data point is said to be missing when no data value is stored for that variable in an observation".
 
-- Bullet 1
-- Bullet 2
-- Bullet 3
+## Overview
 
-## Slide with R Output
+Missing data are a common occurence and can have serious consequences on analysis and inference.
 
-```{r cars, echo = TRUE}
-summary(cars)
+## Overview
+
+Missing data are a common occurence and can have serious consequences on analysis and inference.
+
+## Overview
+
+```{r, echo = FALSE}
+height = c(175, 168, 170, 171, 169, 165, 165, 160, 190, 199)
+weight = c(80, 68, 72, 75, 70, 65, 62, 60, 85, 90)
+plot(weight,height)
 ```
 
-## Slide with Plot
+## Overview
 
-```{r pressure}
-plot(pressure)
+```{r, echo = FALSE}
+height = c(175, 168, 170, 171, 169, 165, 165, 160, 190, 199)
+weight = c(80, 68, 72, 75, 70, 65, 62, 60, 85, 90)
+plot(weight,height)
+abline(lm(height ~ weight))
 ```
+
+## Overview
+
+```{r, echo = FALSE}
+height = c(175, 168, 170, 171, 169, 165, 165, 160, NA, NA)
+weight = c(80, 68, 72, 75, 70, 65, 62, 60, 85, 90)
+plot(weight,height,ylim=c(160,200))
+abline(lm(height ~ weight))
+```
+
+## Overview
+
+Missing data types
+
+- Missing completely at random (MCAR)
+- Missing at random (MAR)
+- Missing not at random (MNAR)
+
+## Overview
+
+Missing completely at random (MCAR)
+
+
+
 

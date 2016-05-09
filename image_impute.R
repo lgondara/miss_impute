@@ -154,7 +154,7 @@ display(as.matrix(comp.data))
 comp.data=missf.img1$ximp
 display(as.matrix(comp.data))
 
-missf.img2=dl_impute(img.dat)
+missf.img2=dl_impute(img.data.miss)
 comp.data.2=missf.img2
 display(as.matrix(comp.data.2))
 
@@ -171,3 +171,23 @@ display(as.matrix(img.data.miss))
 lasso.imp=reg_impute(img.dat)
 comp.data.4=lasso.imp$ximp
 display(as.matrix(comp.data.4))
+
+
+###image missing a chunk ###
+img.data[200:250,200:250]=NA
+display(as.matrix(img.data))
+
+missf.img1=missForest(img.data,maxiter=5)
+
+imp.data=missf.img1$ximp
+display(as.matrix(imp.data))
+
+lasso.imp=reg_impute(img.data,maxiter = 5)
+imp.data2=lasso.imp$ximp
+
+display(as.matrix(imp.data2))
+
+
+dl.imp=dl_impute(img.data)
+imp.data3=dl.imp$ximp
+display(as.matrix(imp.data3))

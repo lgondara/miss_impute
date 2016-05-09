@@ -1,0 +1,11 @@
+source("https://bioconductor.org/biocLite.R")
+require(BiocInstaller)
+biocLite("RDRToolbox")
+require(RDRToolbox)
+require(EBImage)
+Image <- readImage('C:/Users/ldpc/Downloads/panda.jpg')
+display(Image)
+img.data=imageData(Image)
+isomap.data=Isomap(img.data,dims=250,k=15)
+isompa.data2=isomap.data$dim250
+display(as.matrix(isompa.data2))
