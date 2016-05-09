@@ -4,6 +4,7 @@ reg_impute <- function(xmis, maxiter = 1, ntree = 100, verbose = FALSE,xtrue=NA)
 { 
   require(e1071)
   require(caret)
+  require(glmnet)
   n <- nrow(xmis)
   p <- ncol(xmis)
   ##regression
