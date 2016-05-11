@@ -36,3 +36,17 @@ uis.imp=missForest(uis)
 uis.imp.data=uis.imp$ximp
 coxph( Surv(time, round(censor))~as.factor(round(ivhx))+age, method="breslow", data=uis.imp.data)
 
+##Competing risk
+##MAR
+N  <-  50                                   
+inds <- round(runif(N,1,length(uis$censor)))   
+uis$censor[inds] <- 2 
+x=model.matrix(~as.factor(ivhx)+age,data=uis)
+x2=x[,-1]
+crr(uis$time,uis$censor,x2,failcode=1, cencode=0)
+
+##MNAR
+uis$censor[(uis$age)>32 & (uis$ivhx)==3] <- 2
+x=model.matrix(~as.factor(ivhx)+age,data=uis)
+x2=x[,-1]
+crr(uis$time,uis$censor,x2,failcode=1, cencode=0)
