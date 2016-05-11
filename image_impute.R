@@ -1,6 +1,12 @@
 install.packages("ripa")
 install.packages("randomForest")
 install.packages("bartMachine")
+install.packages("mi")
+install.packages("betareg")
+install.packages("mice")
+require(mice)
+require(betareg)
+require(mi)
 require(EBImage)
 require(randomForest)
 require(bartMachine)
@@ -139,7 +145,7 @@ dim(img)
 img.data=imageData(Image)
 display(img.data)
 
-img.data.miss=prodNA(img.data,0.5)
+img.data.miss=prodNA(img.data,0.2)
 display(img.data.miss)
 
 img.dat=as.data.frame(img.data.miss)
@@ -191,3 +197,12 @@ display(as.matrix(imp.data2))
 dl.imp=dl_impute(img.data)
 imp.data3=dl.imp$ximp
 display(as.matrix(imp.data3))
+
+mdf <- missing_data.frame(as.data.frame(img.data.miss))
+summary(mdf)
+
+image(mdf)
+imputations <- mi(mdf, n.iter = 10, n.chains = 4, max.minutes = 20)
+
+md.pattern(img.data.miss)
+tempData <- mice(img.data.miss,m=5,maxit=50,meth='fastpmm',seed=500)
