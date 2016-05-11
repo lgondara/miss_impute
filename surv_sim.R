@@ -15,10 +15,24 @@ survreg(Surv(stop, status) ~ 1 + x + x.1, data=simple.dat, dist="weibull")
 miss.surv1=prodNA(simple.dat,0.5)
 survreg(Surv(stop, status) ~ 1 + x + x.1, data=miss.surv1, dist="weibull")
 
+#data set 1
 uis<-read.table("http://www.ats.ucla.edu/stat/r/examples/asa/uis.csv", sep=",", header = TRUE)
-mod.ph <- coxph( Surv(time, censor)~as.factor(ivhx)+age, method="breslow", data=uis)
-mod.ph
+uis=uis[complete.cases(uis),]
+coxph( Surv(time, censor)~as.factor(ivhx)+age, method="breslow", data=uis)
 
-miss.surv2=prodNA(uis,0.1)
-mod.ph <- coxph( Surv(time, censor)~as.factor(ivhx)+age, method="breslow", data=miss.surv2)
-mod.ph
+N  <-  50                                   
+inds <- round(runif(N,1,length(uis$censor)))   
+uis$censor[inds] <- 0 
+coxph( Surv(time, censor)~as.factor(ivhx)+age, method="breslow", data=uis)
+
+
+uis$censor[(uis$age)>32 & (uis$ivhx)==3] <- 0
+coxph( Surv(time, censor)~as.factor(ivhx)+age, method="breslow", data=uis)
+
+
+uis$censor[(uis$age)>32 & (uis$ivhx)==3] <- NA
+uis.imp=missForest(uis)
+
+uis.imp.data=uis.imp$ximp
+coxph( Surv(time, round(censor))~as.factor(round(ivhx))+age, method="breslow", data=uis.imp.data)
+
